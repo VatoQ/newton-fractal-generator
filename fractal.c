@@ -1,0 +1,96 @@
+#include "fractal.h"
+#include "polynomial.h"
+
+#include <math.h>
+#include <stdint.h>
+#include <stdlib.h>
+
+#define PI 3.1415926535897932
+#define TRIG_SCALAR 127.5
+
+void _init_zeros(FractalGenerator* self)
+{
+    self->zero_colors = malloc(
+        self->polynomial->zero_count * sizeof(Color));
+
+    for (int i = 0; i < self->polynomial->zero_count; i++)
+    {
+        double x = (double)i * 2. * PI /
+            ((double)self->polynomial->zero_count - 1);
+
+        uint8_t r = (uint8_t)(TRIG_SCALAR * cos(x) + TRIG_SCALAR);
+        uint8_t g = (uint8_t)(TRIG_SCALAR * sin(x) + TRIG_SCALAR);
+        uint8_t b = (uint8_t)(2 * TRIG_SCALAR * cos(x) * cos(x));
+
+        ColorDict color_dict = {
+            self->polynomial->zeros[i],
+            { r, g, b }
+        };
+        self->zero_colors[i] = color_dict;
+    }
+}
+
+
+Color _get_color(FractalGenerator* self, double complex z)
+{
+    double complex zero = self->polynomial->get_zero(self->polynomial,
+                                                     z);
+    Color result = { 0, 0, 0};
+    for (int i = 0; i < self->polynomial->zero_count; i++)
+    {
+        if (cabs(zero) - cabs(self->polynomial->zeros[i]) < 1e-8)
+        {
+            result = self->zero_colors[i].color;
+
+            break;
+        }
+    }
+
+    return result;
+}
+
+
+int _fractal_generate(FractalGenerator* self,
+                      Color* result)
+{
+    double a = self->x_root;
+    double b = self->y_root;
+
+    for (int x = 0; x < self->x_resolution; x++)
+    {
+        for (int y = 0; y < self->y_resolution; y++)
+        {
+            double complex z = a + b * I;
+            b += self->stepsize;
+            Color pixel = _get_color(self, z);
+            result[x * self->y_resolution + y] = pixel;
+        }
+        b = self->y_root;
+        a += self->stepsize;
+    }
+    return 0;
+}
+
+FractalGenerator make_fractal_generator(int x_resolution,
+                                        int y_resolution,
+                                        double x_root,
+                                        double y_root,
+                                        double x_range,
+                                        Polynomial* polynomial)
+{
+    FractalGenerator fractal_generator;
+    fractal_generator.x_resolution = x_resolution;
+    fractal_generator.y_resolution = y_resolution;
+    fractal_generator.x_root = x_root;
+    fractal_generator.y_root = y_root;
+    fractal_generator.x_range = x_range;
+    fractal_generator.stepsize = x_range / (double)x_resolution;
+    fractal_generator.y_range = fractal_generator.stepsize * y_resolution;
+    fractal_generator.matrix_size = x_resolution * y_resolution;
+    fractal_generator.polynomial = polynomial;
+    fractal_generator.generate = &_fractal_generate;
+
+    _init_zeros(&fractal_generator);
+
+    return fractal_generator;
+}

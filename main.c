@@ -1,12 +1,11 @@
 #include "polynomial.h"
 #include "fractal.h"
-//#include "format_complex.h"
-#include <complex.h>
-//#include <stdio.h>
-//#include <stdlib.h>
 #include "write_csv.h"
+#include "zeros_generator.h"
 
-#define N 3
+#include <complex.h>
+
+#define N 7
 #define QUANTUM 100
 
 int main()
@@ -15,17 +14,19 @@ int main()
     const int Y_RESOLUTION = 9 * QUANTUM;
     const int MATRIX_SIZE = X_RESOLUTION * Y_RESOLUTION;
 
-    const double X_RANGE = .5;
+    const double X_RANGE = 2;
     const double X_ROOT = -X_RANGE / 2;
     const double Y_ROOT = -X_RANGE / 2;
-    double complex zeros[N] = {
-        1 + 0 * I,
-        -1.054 + 0.97 * I,
-        -0.92 - 1 * I,
-    };
+    //double complex zeros[N] = {
+    //    1 + 0 * I,
+    //    -1.054 + 0.97 * I,
+    //    -0.92 - 1 * I,
+    //};
     Color matrix[MATRIX_SIZE];
 
-    Polynomial polynomial = make_polynomial(N, zeros);
+
+
+    Polynomial polynomial = new_polynomial(0.5, N, 0);
 
     FractalGenerator fractal_generator = make_fractal_generator(
         X_RESOLUTION,
@@ -39,16 +40,8 @@ int main()
     int status = fractal_generator.generate(&fractal_generator,
                                             matrix);
 
-    //for (int y = 0; y < Y_RESOLUTION; y++)
-    //{
-    //    for (int x = 0; x < X_RESOLUTION; x++)
-    //    {
-    //        Color pixel = matrix[x * Y_RESOLUTION + y];
-    //        printf("(%d,%d,%d)", pixel.r, pixel.g, pixel.b);
-    //    }
-    //    printf("\n");
-    //}
-
+    free_fractal(&fractal_generator);
+    free_polynomial(&polynomial);
 
     if (status == 0)
     {

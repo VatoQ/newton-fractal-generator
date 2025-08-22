@@ -7,7 +7,7 @@ TARGET = main
 
 
 # Source files
-SRCS = main.c polynomial.c fractal.c format_complex.c write_csv.c
+SRCS = main.c polynomial.c fractal.c format_complex.c write_csv.c zeros_generator.c
 
 # Object files
 OBJS = $(SRCS:.c=.o)

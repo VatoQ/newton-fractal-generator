@@ -10,7 +10,7 @@ int write_csv(const char *filename,
 
     fpt = fopen(filename, "w");
 
-    fprintf(fpt, "%d,%d\n", width, height);
+    fprintf(fpt, "R;G;B;%d;%d\n", width, height);
 
     int i;
 
@@ -18,7 +18,7 @@ int write_csv(const char *filename,
     {
         Color pixel = matrix[i];
 
-        fprintf(fpt, "%d,%d,%d\n", pixel.r, pixel.g, pixel.b);
+        fprintf(fpt, "%d;%d;%d\n", pixel.r, pixel.g, pixel.b);
     }
     fclose(fpt);
 

@@ -1,6 +1,7 @@
 #include "fractal.h"
 #include "format_complex.h"
 #include "polynomial.h"
+#include "config.h"
 
 #include <math.h>
 #include <complex.h>
@@ -37,24 +38,42 @@ void _init_zeros(FractalGenerator* self)
             { r, g, b }
         };
 
-        printf("\tGenerate: rgb(%d,%d,%d)\n", r, g, b);
+        //printf("\tGenerate: rgb(%d,%d,%d)\n", r, g, b);
         self->zero_colors[i] = color_dict;
     }
 }
 
+void _dim_color(Color* pixel, int stepcount)
+{
+    double decay = exp(-(double)stepcount * (double)stepcount / (STEPCOUNT_MAX * DECAY_FACTOR));
+    //printf("\t\tDimming color by: %f\n", decay);
+    pixel->r = (uint8_t)(decay * pixel->r);
+    pixel->g = (uint8_t)(decay * pixel->g);
+    pixel->b = (uint8_t)(decay * pixel->b);
+
+}
 
 Color _get_color(FractalGenerator* self, double complex z)
 {
+    int stepcount = 0;
     double complex zero = self->polynomial->get_zero(self->polynomial,
-                                                     z);
+                                                     z,
+                                                     &stepcount);
+    if (stepcount == 0)
+    {
+        stepcount = STEPCOUNT_MAX;
+    }
+
+    //printf("\tstepcount: %d", stepcount);
+    
     Color result = { 0, 0, 0};
     for (int i = 0; i < self->polynomial->zero_count; i++)
     {
         if (cabs(zero - self->polynomial->zeros[i]) < 1e-8)
         {
-            printf("\tFound zero %s at %d\n", cmpl_to_string(&zero), i);
+            //printf("\tFound zero %s at %d\n", cmpl_to_string(&zero), i);
             result = self->zero_colors[i].color;
-
+            _dim_color(&result, stepcount);
             break;
         }
     }
@@ -76,7 +95,7 @@ int _fractal_generate(FractalGenerator* self,
             double complex z = a + b * I;
             b += self->stepsize;
             Color pixel = _get_color(self, z);
-            result[x * self->y_resolution + y] = pixel;
+            result[y * self->x_resolution + x] = pixel;
         }
         b = self->y_root;
         a += self->stepsize;

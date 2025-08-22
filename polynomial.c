@@ -26,7 +26,7 @@ double complex _newton(Polynomial* polynomial, double complex z)
 
 double complex _poly_exec(Polynomial* polynomial, double complex z)
 {
-    double complex res = {1.0, 0.0};
+    double complex res = 1 + 0 * I;
 
     for (int i = 0; i < polynomial->zero_count; i++)
     {

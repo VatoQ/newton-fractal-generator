@@ -9,8 +9,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#ifndef PI
 #define PI 3.1415926535897932
+#endif // PI
+#ifndef TRIG_SCALAR
 #define TRIG_SCALAR 127.5
+#endif // TRIG__SCALAR
 
 void _init_zeros(FractalGenerator* self)
 {
@@ -37,8 +41,7 @@ void _init_zeros(FractalGenerator* self)
             self->polynomial->zeros[i],
             { r, g, b }
         };
-
-        //printf("\tGenerate: rgb(%d,%d,%d)\n", r, g, b);
+        printf("Generate color: rgb(%d,%d,%d)\n", r, g, b);
         self->zero_colors[i] = color_dict;
     }
 }
@@ -126,3 +129,11 @@ FractalGenerator make_fractal_generator(int x_resolution,
 
     return fractal_generator;
 }
+
+void free_fractal(FractalGenerator *fractal_generator)
+{
+    free(fractal_generator->zero_colors);
+}
+
+
+

@@ -37,4 +37,6 @@ FractalGenerator make_fractal_generator(int x_resolution,
                                         double x_range,
                                         Polynomial* polynomial);
 
+void free_fractal(FractalGenerator* fractal_generator);
+
 #endif // FRACTAL_H

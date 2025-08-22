@@ -1,9 +1,12 @@
 #include "fractal.h"
+#include "format_complex.h"
 #include "polynomial.h"
 
 #include <math.h>
+#include <complex.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #define PI 3.1415926535897932
 #define TRIG_SCALAR 127.5
@@ -11,21 +14,30 @@
 void _init_zeros(FractalGenerator* self)
 {
     self->zero_colors = malloc(
-        self->polynomial->zero_count * sizeof(Color));
+        self->polynomial->zero_count * sizeof(ColorDict));
+
+    if (!self->zero_colors) {
+        fprintf(stderr, "Memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
+
+
 
     for (int i = 0; i < self->polynomial->zero_count; i++)
     {
         double x = (double)i * 2. * PI /
-            ((double)self->polynomial->zero_count - 1);
+            ((double)self->polynomial->zero_count);
 
         uint8_t r = (uint8_t)(TRIG_SCALAR * cos(x) + TRIG_SCALAR);
         uint8_t g = (uint8_t)(TRIG_SCALAR * sin(x) + TRIG_SCALAR);
-        uint8_t b = (uint8_t)(2 * TRIG_SCALAR * cos(x) * cos(x));
+        uint8_t b = (uint8_t)(2 * TRIG_SCALAR * sin(2 * x) * sin(2 * x));
 
         ColorDict color_dict = {
             self->polynomial->zeros[i],
             { r, g, b }
         };
+
+        printf("\tGenerate: rgb(%d,%d,%d)\n", r, g, b);
         self->zero_colors[i] = color_dict;
     }
 }
@@ -38,8 +50,9 @@ Color _get_color(FractalGenerator* self, double complex z)
     Color result = { 0, 0, 0};
     for (int i = 0; i < self->polynomial->zero_count; i++)
     {
-        if (cabs(zero) - cabs(self->polynomial->zeros[i]) < 1e-8)
+        if (cabs(zero - self->polynomial->zeros[i]) < 1e-8)
         {
+            printf("\tFound zero %s at %d\n", cmpl_to_string(&zero), i);
             result = self->zero_colors[i].color;
 
             break;

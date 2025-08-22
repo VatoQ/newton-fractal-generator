@@ -1,6 +1,6 @@
 # Compiler and flags
 CC = gcc
-CFLAGS = -Wall -Wextra -O0 -std=c99 -lm
+CFLAGS = -Wall -Wextra -O2 -std=c99 -lm
 
 # Target executable
 TARGET = main

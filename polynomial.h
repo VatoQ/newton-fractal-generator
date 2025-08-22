@@ -8,7 +8,7 @@ typedef struct poly {
     int zero_count;
     double complex* zeros;
     double complex (*exec)(struct poly* polynomial, double complex z);
-    double complex (*get_zero)(struct poly* polynomial, double complex z);
+    double complex (*get_zero)(struct poly* polynomial, double complex z, int* stepcount);
 
 } Polynomial ;
 

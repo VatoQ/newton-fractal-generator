@@ -11,12 +11,13 @@ double complex _derivative(Polynomial* polynomial, double complex z)
     return (f_z_h - f_z) / EPS;
 }
 
-double complex _newton(Polynomial* polynomial, double complex z)
+double complex _newton(Polynomial* polynomial, double complex z, int* stepcount)
 {
     double complex f_z = polynomial->exec(polynomial, z);
 
     while (cabs(f_z) > EPS)
     {
+        (*stepcount)++;
         z = z - polynomial->exec(polynomial, z) / _derivative(polynomial, z);
         f_z = polynomial->exec(polynomial, z);
     }

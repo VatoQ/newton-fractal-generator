@@ -1,6 +1,6 @@
 # Compiler and flags
 CC = gcc
-CFLAGS = -Wall -Wextra -O2 -std=c99 -lm
+CFLAGS = -Wall  -g -Wextra -O3 -ffast-math -fopenmp -march=native -std=c99 -lm
 
 # Target executable
 TARGET = main

@@ -8,6 +8,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
+#include <omp.h>
 
 #ifndef PI
 #define PI 3.1415926535897932
@@ -16,7 +18,7 @@
 #define TRIG_SCALAR 127.5
 #endif // TRIG__SCALAR
 
-void _init_zeros(FractalGenerator* self)
+void _init_colors(FractalGenerator* self)
 {
     self->zero_colors = malloc(
         self->polynomial->zero_count * sizeof(ColorDict));
@@ -27,14 +29,14 @@ void _init_zeros(FractalGenerator* self)
     }
 
 
-
+    //#pragma omp parallel for
     for (int i = 0; i < self->polynomial->zero_count; i++)
     {
         double x = (double)i * 2. * PI /
             ((double)self->polynomial->zero_count);
 
         uint8_t r = (uint8_t)(TRIG_SCALAR * cos(x) + TRIG_SCALAR);
-        uint8_t g = (uint8_t)(TRIG_SCALAR * sin(x) + TRIG_SCALAR);
+        uint8_t g = (uint8_t)(-TRIG_SCALAR * sin(x) + TRIG_SCALAR);
         uint8_t b = (uint8_t)(2 * TRIG_SCALAR * sin(2 * x) * sin(2 * x));
 
         ColorDict color_dict = {
@@ -49,11 +51,9 @@ void _init_zeros(FractalGenerator* self)
 void _dim_color(Color* pixel, int stepcount)
 {
     double decay = exp(-(double)stepcount * (double)stepcount / (STEPCOUNT_MAX * DECAY_FACTOR));
-    //printf("\t\tDimming color by: %f\n", decay);
     pixel->r = (uint8_t)(decay * pixel->r);
     pixel->g = (uint8_t)(decay * pixel->g);
     pixel->b = (uint8_t)(decay * pixel->b);
-
 }
 
 Color _get_color(FractalGenerator* self, double complex z)
@@ -62,24 +62,30 @@ Color _get_color(FractalGenerator* self, double complex z)
     double complex zero = self->polynomial->get_zero(self->polynomial,
                                                      z,
                                                      &stepcount);
+
     if (stepcount == 0)
     {
         stepcount = STEPCOUNT_MAX;
     }
 
-    //printf("\tstepcount: %d", stepcount);
-    
+
     Color result = { 0, 0, 0};
-    for (int i = 0; i < self->polynomial->zero_count; i++)
+    double min = INFINITY;
+    int min_idx = 0;
+    double complex* zeros = self->polynomial->zeros;
+    int zero_count = self->polynomial->zero_count;
+    #pragma omp simd
+    for (int i = 0; i < zero_count; i++)
     {
-        if (cabs(zero - self->polynomial->zeros[i]) < 1e-8)
+        double diff = cabs(zero - zeros[i]);
+        if (diff < min)
         {
-            //printf("\tFound zero %s at %d\n", cmpl_to_string(&zero), i);
-            result = self->zero_colors[i].color;
-            _dim_color(&result, stepcount);
-            break;
+            min = diff;
+            min_idx = i;
         }
     }
+    result = self->zero_colors[min_idx].color;
+    _dim_color(&result, stepcount);
 
     return result;
 }
@@ -88,20 +94,18 @@ Color _get_color(FractalGenerator* self, double complex z)
 int _fractal_generate(FractalGenerator* self,
                       Color* result)
 {
-    double a = self->x_root;
-    double b = self->y_root;
-
+    #pragma omp parallel for collapse(2)
     for (int x = 0; x < self->x_resolution; x++)
     {
         for (int y = 0; y < self->y_resolution; y++)
         {
+            double a = self->x_root + x * self->stepsize;
+            double b = self->y_root + y * self->stepsize;
             double complex z = a + b * I;
-            b += self->stepsize;
+
             Color pixel = _get_color(self, z);
             result[y * self->x_resolution + x] = pixel;
         }
-        b = self->y_root;
-        a += self->stepsize;
     }
     return 0;
 }
@@ -125,7 +129,7 @@ FractalGenerator make_fractal_generator(int x_resolution,
     fractal_generator.polynomial = polynomial;
     fractal_generator.generate = &_fractal_generate;
 
-    _init_zeros(&fractal_generator);
+    _init_colors(&fractal_generator);
 
     return fractal_generator;
 }

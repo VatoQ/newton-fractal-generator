@@ -13,22 +13,15 @@ typedef struct
 typedef struct fractal {
     double x_range, y_range;
     double x_root, y_root;
-
     int x_resolution, y_resolution;
-
     double  stepsize;
-
     int matrix_size;
-
     ColorDict* zero_colors;
-
     Polynomial* polynomial;
-
+    int total_iterations;
     int (*generate)(struct fractal* self,
                     Color* result);
-
-
-} FractalGenerator ;
+} FractalGenerator;
 
 FractalGenerator make_fractal_generator(int x_resolution,
                                         int y_resolution,

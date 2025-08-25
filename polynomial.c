@@ -1,7 +1,12 @@
 #include "polynomial.h"
+#include "config.h"
+
+
 #include <complex.h>
 
+#ifndef EPS
 #define EPS 1e-8
+#endif // EPS
 
 double complex _derivative(Polynomial* polynomial, double complex z)
 {

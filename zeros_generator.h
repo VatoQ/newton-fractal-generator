@@ -6,6 +6,8 @@
 typedef enum zero_pattern
 {
     NORMAL,
+    SPIRAL,
+    SPIRAL_INV
 } zero_pattern;
 
 Polynomial new_polynomial(double radius,
